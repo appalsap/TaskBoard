@@ -1,197 +1,429 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" ></meta>
+<meta charset="UTF-8"/>
+
 <title> TaskBoard</title>
 
-<style type="text/css">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
 
-.center
-{
-margin:auto;
-width:300px;
+<link rel="stylesheet" media="screen and (min-width: 480px)" href="css/styles.css" type="text/css" />
+<link rel="stylesheet" media="screen and (max-width: 480px)" href="css/mobile.css" type="text/css" />
+<link rel="stylesheet" href="css/tagcloud.css" type="text/css" />
+
+
+<script type="text/javascript" >
+
+/*
+	General XmlHttpRequest Object
+*/
+//Gets the browser specific XmlHttpRequest Object
+function getXmlHttpRequestObject() {
+	if (window.XMLHttpRequest) {
+		return new XMLHttpRequest();
+	} else if(window.ActiveXObject) {
+		return new ActiveXObject("Microsoft.XMLHTTP");
+	} else {
+		document.getElementById('p_status').innerHTML = 
+		'Status: Cound not create XmlHttpRequest Object.' +
+		'Consider upgrading your browser.';
+	}
 }
 
-/* Reset */
-* { margin:0px; padding:0px; }
-html, body { height:100%; }
-p { margin:0.5em; }
-ul li { margin-left:3em; }
+/* 
+	Autoupdate Sequence (via ajax)
+*/
+	// Global Tracker Vars
+	//prev content
+	prev_content = "";
+	//number of tries
+	waittime = 0;
+function autoUpdate(){
+	var xmlhttp;
+	  xmlhttp = getXmlHttpRequestObject();
 
+	
+	<?php 
+	if ( in_array("tasksView", $mode) or in_array("tasksList", $mode) ) { 
+		
+		if ( in_array("tasksView", $mode) ){
+			$DivLoc = "commentDIV";
+		} else if ( in_array("tasksList", $mode) ){
+			$DivLoc = "taskDIV";
+		}
+	
+	?>
+		
+		// Function to run on receive.
+		xmlhttp.onreadystatechange=function() {
+		  if (xmlhttp.readyState==4 && xmlhttp.status==200){
+					if(prev_content != xmlhttp.responseText){
+						document.getElementById("<?php echo $DivLoc ?>").innerHTML=xmlhttp.responseText;
+						// save new content to track it
+						prev_content = xmlhttp.responseText;
+						// track more often
+						tries = 0;
+					} else {
+						tries ++;
+					}
+					document.getElementById("stopAutoUpdateButton").innerHTML = "Refresh Now - tries:"+tries;
+					t=setTimeout('autoUpdate()',1000*4+1000*Math.pow(2,tries));
+			}
+		}
+		
+		<?php
+		if ( in_array("tasksView", $mode) ){
+		?>
+			xmlhttp.open("POST","?q=/ajaxcomments/",true);
+			xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+			randomLargeNumber=Math.floor(Math.random()*10000000);
+			xmlhttp.send("taskid=<?php echo $taskid; ?>&sid="+Math.random());		
+		<?php
+		} else if ( in_array("tasksList", $mode) ){
+		?>
+			xmlhttp.open("POST","?q=/ajaxtasks/",true);
+			xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+			randomLargeNumber=Math.floor(Math.random()*10000000);
+			xmlhttp.send("tags=<?php echo $tagslist; ?>&sid="+Math.random());
+		<?php
+		}
+		?>
 
-/* Styling */
-body { font-family: Arial, "Sans-Serif", "Sans Serif"; ; font-size:14px; background-color:black; color:#F5F5F5; }
-
-/*Standard Black Box for any non list content*/
-.blackbox { padding:10px;border: 1px solid gray; background-color:#000000; border-radius: 3px; color:#F5F5F5;}
-.greybox { padding:10px;border: 1px solid gray; background-color:#ababab; border-radius: 3px; color: #515151;}
-
-/*Header*/
-#header {  margin-top:10px;background-color:#7d7d7d;}
-
-/*SVG BG*/
-#svgBackground {
-	position: absolute;
-	left: 0px;
-	right: 0px;
-	top: 0px;
-	bottom: 0px;
-	overflow: hidden;
-	z-index: 1
-}
-.contentBox{
-	position: absolute;
-	left: 0px;
-	right: 0px;
-	top: 0px;
-	bottom: 0px;
-	overflow: auto;
-	z-index: 2
-}
-
-/* Elements */
-.tasklist {border-bottom-width:0px; width:100%; border-radius: 10px;}
-.tasklist .task{
-	border-bottom: 1px solid gray;
-	border-radius: 10px;
-	background-color:#ababab;
-}
-.tasklist .task0{
-	/*border-bottom: 2px solid gray;*/
-	padding:10px;
-	color: #515151;
-	background-color:#ababab;
-	border-radius: 10px;
-	/*border-bottom:2px;*/
-}
-.tasklist .task0 .title { display:block; font-weight:bold; }
-.tasklist .task0 .message { font-size:0.9em; }
-
-.tasklist .task1{
-	/*border-bottom: 2px solid gray;*/
-	padding:10px;
-	color: #515151;
-	background-color:#e1e1e1;
-	border-radius: 10px;
-	/*border-bottom:2px;*/
+	<?php } ?>
 }
 
-.tasklist .task1 .title { display:block; font-weight:bold; }
-.tasklist .task1 .message { font-size:0.9em; }
 
-.task0 a:link,.task1 a:link {color: #515151; text-decoration: underline; }
-.task0 a:active,.task1 a:active {color: #515151; text-decoration: underline; }
-.task0 a:visited,.task1 a:visited {color: #515151; text-decoration: underline; }
-.task0 a:hover,.task1 a:hover {color: #66FFFF; text-decoration: none; }
+/*
+	Time and date in local and UTC
+*/
+function startTime(){
+	dateObject=new Date();
 
-/* LINKS */
-a:link {color: #FFFFFF; text-decoration: underline; }
-a:active {color: #FFFFFF; text-decoration: underline; }
-a:visited {color: #FFFFFF; text-decoration: underline; }
-a:hover {color: #66FFFF; text-decoration: none; }
+	//[local to UTC offset(minutes) -> converted to msec] + [msec since Jan 1 1970 (locally)]
+	local = dateObject.getTime();
+	utc =  dateObject.getTimezoneOffset()*60*1000 + dateObject.getTime();
 
-</style>
+	//milisec to string
+	utctime = new Date(utc);
+	localtime = new Date(local);
 
-<script type="text/javascript">
-function startTime()
-{
-dateObject=new Date();
-
-//[local to UTC offset(minutes) -> converted to msec] + [msec since Jan 1 1970 (locally)]
-local = dateObject.getTime();
-utc =  dateObject.getTimezoneOffset()*60*1000 + dateObject.getTime();
-
-//milisec to string
-utctime = new Date(utc);
-localtime = new Date(local);
-
-//Update the clock display
-document.getElementById('utcDate').innerHTML= 
-												"<b>UTC DATE: </b>"+utctime.toLocaleDateString();
-document.getElementById('utcTime').innerHTML= 
-												"<b>UTC TIME: </b>"+utctime.toLocaleTimeString();
-document.getElementById('localTime').innerHTML=
-												"<b>CUR TIME: </b>"+localtime.toLocaleTimeString();
-t=setTimeout('startTime()',500);
+	//Update the clock display
+	document.getElementById('utcDate').innerHTML= 
+													"<b>UTC DATE: </b>"+utctime.toLocaleDateString();
+	document.getElementById('utcTime').innerHTML= 
+													"<b>UTC TIME: </b>"+utctime.toLocaleTimeString();
+	document.getElementById('localTime').innerHTML=
+													"<b>CUR TIME: </b>"+localtime.toLocaleTimeString();
+	t=setTimeout('startTime()',500);
 }
+
+
+
+<!--COUNTDOWN SYSTEM (DETECTION FORMAT EXAMPLE: 2012-09-01 12:35 UTC+13 )-->
+<?php
+if (in_array("tasksView", $mode)) {
+	$task = $tasks[0];
+	//FORMAT: $countdown = "countdown($year_c_d,$month_c_d,$day_c_d,$hours_c_d,$minutes_c_d,$seconds_c_d,$timezone_c_d)";
+	/*
+		check for date and time	
+	*/
+
+		// for 2012-09-01T12:35:23+13 OR 2012-09-01 12:35:23 UTC+13
+	if( preg_match ( "/(\d{4})[-\/](\d{2})[-\/](\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:Z| UTC| GMT)?([-+ ]\d{1,2})/i" , $task['message'], $cdmatches ) ){
+		$countdown = "countdown($cdmatches[1],$cdmatches[2],$cdmatches[3],$cdmatches[4],$cdmatches[5],$cdmatches[6],$cdmatches[7])";
+			
+		// for 2012-09-01T12:35:23Z OR 2012-09-01 12:35:23Z UTC
+	} else if( preg_match ( "/(\d{4})[-\/](\d{2})[-\/](\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:Z| UTC| GMT)/i" , $task['message'], $cdmatches ) ){
+		$countdown = "countdown($cdmatches[1],$cdmatches[2],$cdmatches[3],$cdmatches[4],$cdmatches[5],$cdmatches[5],00 )";
+			
+		// for 2012-09-01T12:35+13 OR 2012-09-01 12:35 UTC+13
+	} else if( preg_match ( "/(\d{4})[-\/](\d{2})[-\/](\d{2})[T ](\d{2}):(\d{2})(?:Z| UTC| GMT)?([-+ ]\d{1,2})/i" , $task['message'], $cdmatches ) ){
+		$countdown = "countdown($cdmatches[1],$cdmatches[2],$cdmatches[3],$cdmatches[4],$cdmatches[5],00,$cdmatches[6])";
+			
+		// for 2012-09-01T12:35Z or 2012-09-01 12:35 UTC
+	} else if( preg_match ( "/(\d{4})[-\/](\d{2})[-\/](\d{2})[T ](\d{2}):(\d{2})(?:Z| UTC| GMT)/i" , $task['message'], $cdmatches ) ){
+		$countdown = "countdown($cdmatches[1],$cdmatches[2],$cdmatches[3],$cdmatches[4],$cdmatches[5],00,00)";
+		
+		// for 2012-09-01 // zulu notation is assumed as at this level of detail, timezone is not required
+	} else if( preg_match ( "/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/i" , $task['message'], $cdmatches ) ){
+		$countdown = "countdown($cdmatches[1],$cdmatches[2],$cdmatches[3],00,00,00,00)";
+		
+		// for 01-09-2012 // zulu notation is assumed as at this level of detail, timezone is not required
+	} else if( preg_match ( "/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/i" , $task['message'], $cdmatches ) ){
+		$countdown = "countdown($cdmatches[3],$cdmatches[2],$cdmatches[1],00,00,00,00)";
+		
+	} else{
+		$countdown = "";
+	}
+
+?>
+	/*
+		Countdown System JAVASCRIPT FUNCTION
+	*/
+	function countdown(yr,m,d,hr,min,sec,tz){
+		var montharray = Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+		theyear=yr;themonth=m;theday=d;thehour=hr;theminute=min;thesecond=sec;thetimezone=tz;
+			
+		var today=new Date();
+		var todayy=today.getYear();
+		if (todayy < 1000) {todayy+=1900;}
+		var todaym=today.getMonth();
+		var todayd=today.getDate();
+		var todayh=today.getHours();
+		var todaymin=today.getMinutes();
+		var todaysec=today.getSeconds();
+		var todaystring1=montharray[todaym]+" "+todayd+", "+todayy+" "+todayh+":"+todaymin+":"+todaysec;
+		var todaystring=Date.parse(todaystring1)+(tz*1000*60*60);
+		var futurestring1=(montharray[m-1]+" "+d+", "+yr+" "+hr+":"+min+":"+sec);
+		var futurestring=Date.parse(futurestring1)-(today.getTimezoneOffset()*(1000*60));
+		var dd=futurestring-todaystring;
+		var dday=Math.floor(dd/(60*60*1000*24)*1);
+		var dhour=Math.floor((dd%(60*60*1000*24))/(60*60*1000)*1);
+		var dmin=Math.floor(((dd%(60*60*1000*24))%(60*60*1000))/(60*1000)*1);
+		var dsec=Math.floor((((dd%(60*60*1000*24))%(60*60*1000))%(60*1000))/1000*1);
+		if(dday<=0&&dhour<=0&&dmin<=0&&dsec<=0){
+			document.getElementById('count2').innerHTML="Countdown Completed at "+futurestring1+" UTC\+"+tz+"";
+			document.getElementById('count2').style.display="inline";
+			document.getElementById('count2').style.width="390px";
+			document.getElementById('dday').style.display="none";
+			document.getElementById('dhour').style.display="none";
+			document.getElementById('dmin').style.display="none";
+			document.getElementById('dsec').style.display="none";
+			document.getElementById('days').style.display="none";
+			document.getElementById('hours').style.display="none";
+			document.getElementById('minutes').style.display="none";
+			document.getElementById('seconds').style.display="none";
+			document.getElementById('spacer1').style.display="none";
+			document.getElementById('spacer2').style.display="none";
+			return;
+		} else {
+			document.getElementById('count2').innerHTML="Countdown to "+futurestring1+" UTC\+"+tz+"";
+			document.getElementById('count2').style.display="inline";
+			document.getElementById('count2').style.width="400px"; 
+			<!--document.getElementById('count2').style.display="none";-->
+			document.getElementById('dday').innerHTML=dday;
+			document.getElementById('dhour').innerHTML=dhour;
+			document.getElementById('dmin').innerHTML=dmin;
+			document.getElementById('dsec').innerHTML=dsec;
+        setTimeout("countdown(theyear,themonth,theday,thehour,theminute,thesecond,thetimezone)",1000);
+		}
+	}
+<?php
+}else{
+		$countdown = ""; // Disable the countdown system
+}
+?>
+		<!--COUNTDOWN SYSTEM-->
+
 </script>
 
 </head>
 
-<body onload="startTime()">
-	<!--THIS IS THE BACKGROUND SVG DO NOT REMOVE-->
-	<div id="svgBackground">
-	<svg xmlns="http://www.w3.org/2000/svg" version="1.1"  viewBox="-2794 0 3818 1880" style="width:100%; height:100%; position:absolute; top:0px; left:0px; z-index:-1;" >
-	  <g>
-		<path style="fill:#0D001A;stroke:#66FFFF;stroke-width:3" d="M814 679l-76 32 -19 -23 69 -32 26 23zm-104 59l-59 96 -95 49 -27 -32 95 -53 32 -93 54 33zm-14 204l-31 23 -28 -87 19 5 40 59zm51 378l-191 -40 -6 -68 179 45 18 63zm272 370l-67 82 -32 -4 -9 -47 83 -90 -34 -51 19 -28 32 47 8 91zm-514 -488l-36 63 -31 -4 31 -72 36 13zm-67 -13l-38 72 -68 -18 5 -54 59 -59 42 59zm586 -702l-127 14 4 45 -76 100 -15 -91 42 -54 -146 14 -86 45 -11 37 61 -14 4 86 -41 4 -13 42 -83 55 13 36 -53 36 -19 -63 -36 19 9 127 -155 90 41 60 -68 40 -28 -53 -14 4 14 59 55 36 -19 19 -36 -10 9 28 32 4 18 55 83 31 4 28 -95 -17 -133 -146 55 4 -78 -169 0 -46 -22 0 -10 42 -76 59 0 55 -60 17 -37 -104 -26 -8 4 -61 -219 -40 36 59 37 -13 41 40 -41 51 -96 36 -100 -192 -27 0 -4 37 67 136 51 38 78 -6 -141 205 17 18 6 68 -42 32 -5 51 -109 132 -87 -5 -77 -210 24 -32 0 -54 -65 -77 27 -18 -63 -41 -127 -4 -74 -65 -4 -140 164 -142 91 -8 23 26 -5 23 73 23 36 -32 28 23 99 5 19 -19 0 -55 -41 55 -54 -73 9 73 -51 -37 -9 -54 -61 -71 -11 12 49 68 -32 45 -13 -54 -55 -41 -31 28 -19 -10 -104 97 -37 -102 73 5 13 -32 -27 -28 46 -36 27 -4 51 -46 -14 -36 27 -13 18 27 92 -5 4 -26 100 -38 -18 -22 -63 22 -19 -40 46 -36 -27 -28 -59 77 21 18 -4 47 -59 17 -14 -36 -63 8 4 -54 104 -140 115 -28 172 40 -31 47 -68 -6 45 46 132 -87 87 0 -59 -67 68 -70 95 -40 14 32 -90 32 -51 54 104 64 -17 -32 63 -55 114 28 17 -36 206 -78 141 31 -104 60 323 33 55 -55 26 49 156 14 45 24 127 -15 0 173zm-227 1021l-78 145 -63 -5 -123 -91 -4 23 -151 31 18 -63 -32 -13 0 -78 197 -127 90 59 5 -50 27 -4 114 173zm-1604 -921l-4 38 -64 0 20 -38 -42 -45 31 -32 19 45 40 32zm-127 -172l-82 59 -49 -73 91 -23 40 37zm258 394l-28 -10 17 -27 11 37zm-276 -727l-54 46 -10 114 -82 127 -131 40 -32 78 -59 -4 -68 -105 -27 -141 -55 -41 -60 19 -31 -42 99 -123 410 -50 100 82zm65 520l-28 31 -31 -28 26 -45 33 42zm605 756l-41 131 -59 -41 17 -59 59 -46 24 15zm-1294 -402l-36 -18 0 -32 36 50zm133 87l-23 9 -114 -41 8 -23 129 55zm-160 -68l-9 28 -70 -15 7 -34 72 21zm428 318l-36 42 -10 82 -277 296c10,17 13,37 9,59l-36 36 32 40 -28 32 -72 -81 0 -132 45 -260 -60 -28 -63 -158 27 -41 0 -46 -63 0 -28 -55 -36 4 -128 -72 -41 -50 -50 0 -137 -182 6 -91 -47 -68 -31 9 -23 -46 27 4 -68 -72 -90 -14 -220 109 78 -76 -55 -42 -23 -155 91 -46 437 46 -82 -59 19 -78 437 -167 169 8 -150 169 199 163 -63 68 -119 -21 15 -74 -42 0 -18 51 13 44 -90 -8 -47 63 33 27 64 19 59 68 22 -68 -13 -14 0 -68 141 23 114 137 -160 91 0 49 -28 -4 -27 27 6 36 -65 55 19 60 -32 0 -27 -41 -100 0 -38 68 38 36 17 0 36 -22 24 13 -9 51 36 4 9 55 65 0 63 -27 45 17 85 3 6 56 69 0 8 65 47 0 122 81zm-1411 -869l-137 -4 -32 13 36 36 -75 18 0 -173 185 74 23 36zm191 579l-18 32 -63 -42 -42 22 -100 -59 9 -27 114 46 44 -23 56 51zm-255 -106l-50 32 -27 -59 77 27zm514 588l-27 27 -41 -27 28 -28 40 28zm-72 -41l-32 18 -42 -28 32 -40 42 50zm2050 -698l-5 -37 -23 3 3 37 25 -3zm-82 59l-30 -59 25 -34 -13 -14 -26 20 6 97 38 -10zm-141 -61l-33 -53 -31 -6 2 24 -27 3 -23 -30 -41 51 8 32 36 -28 28 0 81 7z" id="43381528"/>
-	  </g>
-	</svg>
-	<div>
-	<!--END OF THIS IS THE BACKGROUND SVG DO NOT REMOVE-->
-	<div class="contentBox">
+
+
+<body onload="startTime();autoUpdate();<?php echo $countdown ?>">
 	<div class="center">
 		<?php if($__debug) echo "<div style='width:100%;background-color:darkred;'>This is a development preview of TaskBoard. <br/>
-		Please help out with making it better by contributing to <a href='https://github.com/corneyflorex/TaskBoard'>here</a> <br/>
-		Alternatively, suggest ideas or improvements to <a href='http://www.nero.secondsource.info/news.php?item.107.4'>here</a></div>"?>
+		Please help out with making it better by contributing to <a href='https://github.com/corneyflorex/TaskBoard'>here</a> </div>"?>
 	
 		<div id='header' class='greybox'>
 			<!--Title or logo & Navigation links-->
-			<b><a href="?"><font size="5">TASKBOARD</font></a> </b>| <a href="?q=/tasks/search">Search</a> | <a href="?q=/tasks/new">New task</a>
+			<a style="font-size:2em;text-decoration:none" href="?">TASKBOARD</a>
 			<!--Title or logo-->
 			
+			<!-- Perm Tags Board -->
+			<div class="taglist">
+				Boards: 
+				<?php 
+				if(!empty($__defaultTags) and isset($__defaultTags)){
+					foreach($__defaultTags as $tag){ 
+				?>
+						<a href="?q=/tags/<?php echo htmlentities(stripslashes($tag),null, 'utf-8'); ?>"><?php echo $tag ; ?></a>
+				<?php 
+					}
+				}?>
+			</div>
+			<!---->
+			
 			<!--Most commonly accessed tags this week-->
-			<div id="tagcloud">
-				Tags: 
+			<div class="taglist">
+				Top Tags: 
 				<?php foreach($top_tags as $tag){ ?>
-							<a href="?q=/tags/<?php echo htmlentities(stripslashes($tag['label'])); ?>" title="Count: <?php echo htmlentities(stripslashes($tag['count'])); ?>"><?php echo substr( htmlentities(stripslashes(htmlentities($tag['label']))) ,0,10) ; ?></a>
+							<a href="?q=/tags/<?php echo htmlentities(stripslashes($tag['label'])); ?>" title="Count: <?php echo htmlentities(stripslashes($tag['count'])); ?>"><?php echo substr( htmlentities(stripslashes(htmlentities($tag['label'])),null, 'utf-8') ,0,10) ; ?></a>
 				<?php } ?>
 			</div>
 			<!--Most commonly accessed tags this week-->
 		</div>
 		
+		<!--Admin message-->
+		<?php if (in_array("tasksList", $mode)) {echo __tagPageMessage($mode,$tags,$__tagPageArray); }?>
+		
+		<!--Navigation-->
+		<div id="nav" style="" class="greybox">
+			<?php
+			if(isset($_SERVER['HTTP_REFERER'])){
+				$url = htmlspecialchars($_SERVER['HTTP_REFERER']);
+				echo "<a style='font-weight:bold;' href='$url'>Back</a>";
+			} else {
+				echo "<a style='font-weight:bold;' href='?'>Home</a>";
+			}
+			?>
+			|
+			<?php if (in_array("tasksList", $mode) && !empty($tags)){?>
+				<a style="font-weight:bold;" href="?q=/tasks/new&tag=<?php echo $tags[0];?>">Create New '<?php echo $tags[0];?>' Task</a>
+			<?php } else if (!empty($_GET['referral_tag'])){?>
+				<a style="font-weight:bold;" href="?q=/tasks/new&tag=<?php echo $_GET['referral_tag'];?>">Create New '<?php echo $_GET['referral_tag'];?>' Task</a>
+			<?php } else {?>
+				<a style="font-weight:bold;" href="?q=/tasks/new">Post new task here</a>
+			<?php }?>
+			|		
+
+			<!-- THERE IS SOME PROBLEM WITH SEARCH AT THE MOMENT
+			<a href="?q=/tasks/search">Search</a>
+			|	
+			-->
+
+			<a href="?q=/rss">RSS</a>
+			|
+			<a href="help.html">Help</a>
+			|
+
+			<FORM style="float:right;" action='?q=/tags/' method='post'>
+				<INPUT style="background:grey; color:white; border-width:1px; border-style:solid; border-color:grey;" type='text' name='tags' size='10' > 
+				<INPUT style="background:grey; color:white; border-width:1px; border-color:grey;" type='submit' value='Access Board'> 
+			</FORM>
+		</div>		
+		
 		<!--TaskView-->
 		<?php if (in_array("tasksView", $mode)) { ?>
 		<div class="tasklist">
-			<?php foreach($tasks as $task){ ?>
-					<div class="task1">
-						<?php echo __prettyTripFormatter($task['tripcode']);?>
-						<span class="title"><?php echo htmlentities(stripslashes($task['title'])); ?> </span>
-						<span class="message"><?php echo nl2br(htmlentities(stripslashes($task['message']))); ?></span>
-					</div>
-					<div class="task1">
-					<a href="http://tinychat.com/<?php echo md5($task['title'].$task['message']);?>" target="_blank">Conference via TinyChat - click here</a>
-					</div>
-					</br>
-					<div class="greybox">
-						<FORM action='?q=/tasks/delete' method='post' enctype='multipart/form-data'>
-							<input type="hidden" name="taskID" value="<?php echo $task['task_id']; ?>">
-							KeyFile:<input type='file' name='keyfile' />
-                                                        Password: <INPUT type='text' name='password' value=''>
-                                                        <INPUT type='submit' value='delete task'> 
-						</FORM>
+			<?php //$task = $tasks[0]; //donno why this is here ?>
+			
+					<div style="text-align:center; border-width:1px; border-radius: 10px;" class="blackbox">
+						<a style="color:grey;" href="#OP">View Author's Message</a>
+						( <a style="color:grey;" href="?q=/printview/<?php echo $taskid?>">Print</a> )
+						<?php if ( isset($_GET['referral_tag']) ) {?>
+							<a style="color:grey;" href="?q=/tasks/new&tag=<?php echo $_GET['referral_tag'];?>&respondtaskid=<?php echo $taskid;?>">Create New Version Of This Task</a>
+						<?php } else if( isset($taskid) ) {?>
+							<a style="color:grey;" href="?q=/tasks/new&respondtaskid=<?php echo $taskid;?>">Create New Version Of This Task</a>
+						<?php }?>
 					</div>
 					
+					<?php if(isset($task['responding_to_task_id']) && ($task['responding_to_task_id'] != "") ){?>
+						<div class="blackbox">
+							>> This Task is a reponse to this <a href="?q=/view/<?php echo $task['responding_to_task_id'] ?>" target="_blank">Parent Task</a>
+						</div>	
+					<?php } ?>
+					
+					<!--COUNTDOWN SYSTEM-->
+					<?php if($countdown != ""){ ?>
+					<div style="text-align:center; border-width:1px; border-radius: 10px;" class="blackbox">
+						<table id="table" style="margin: 0px auto;" border="0">
+							<tr>
+								<td align="center" colspan="6"><div class="numbers" id="count2" style="padding: 5px 0 0 0; "></div></td>
+							</tr>
+							<tr id="spacer1">
+								<td align="center" ><div class="numbers" ></div></td>
+								<td align="center" ><div class="numbers" id="dday"></div></td>
+								<td align="center" ><div class="numbers" id="dhour"></div></td>
+								<td align="center" ><div class="numbers" id="dmin"></div></td>
+								<td align="center" ><div class="numbers" id="dsec"></div></td>
+								<td align="center" ><div class="numbers" ></div></td>
+							</tr>
+							<tr id="spacer2">
+								<td align="center" ><div class="title" ></div></td>
+								<td align="center" ><div class="title" id="days">Days</div></td>
+								<td align="center" ><div class="title" id="hours">Hours</div></td>
+								<td align="center" ><div class="title" id="minutes">Minutes</div></td>
+								<td align="center" ><div class="title" id="seconds">Seconds</div></td>
+								<td align="center" ><div class="title" ></div></td>
+							</tr>
+						</table>
+					</div>
+					<?php } ?>
+					<!--COUNTDOWN SYSTEM-->
 
-                                        
-					<div id="add_comment">
-						Comments?
-						<form name="add_comment" action="?q=/tasks/comment/<?php echo $task['task_id']; ?>" method="post">
-							<textarea id="comment" name="comment">
-								
-							</textarea>
-							<input type="submit" value="Submit" />
+					
+					<?php if($task['imagetype'] != NULL){ ?>
+					<div style="text-align:center;" class="cloudbox">
+						<a href="?q=/image/<?php echo $task['task_id']; ?>"><img border="0" src="?q=/image/<?php echo $task['task_id']; ?>" alt="Pulpit rock" style="max-width:100%"/></a>
+					</div>
+					<?php } ?>
+					
+					<?php	// This is to show the users, what tags a post is tagged as.
+							if(isset($tagsused) && !empty($tagsused)){//tagsused
+								$tagstring = "";
+								foreach( $tagsused as $row){
+									$tagstring .= " #".$row['label'];
+								}
+								$tagmessage="\n \n \n \n HashTag(s):".$tagstring;
+							}else{
+								$tagmessage="";
+							} 
+					?>
+					
+					<div id="OP" class="task1">
+						<?php echo __prettyTripFormatter($task['tripcode']);?>
+						<span class="title"><?php echo htmlentities(stripslashes($task['title']),null, 'utf-8'); ?> </span>
+						<span><?php echo date('F j, Y, g:i a', $task['created']);?></span>
+						<span style='font-size:0.6em;' ><i><div id='OPGUID' >MD5 Global ID: <?php echo md5($task['message']); ?></div></i></span>
+						<br />
+						<span class="message">
+							<?php echo nl2br(
+												__encodeTextStyle(htmlentities(stripslashes(
+													$task['message'] 
+													.$tagmessage
+												),null, 'utf-8'))
+											); ?>
+						</span>
+					</div>
+					<!--
+					<div class="task1">
+						<a href="http://tinychat.com/<?php echo md5($task['message']);?>" target="_blank">Conference via TinyChat - click here</a>
+					</div>
+					-->
+					<div style="text-align:center; border-width:1px; border-radius: 10px;" class="greybox">
+						<a style="color:grey;" href="#add_comment">Post Comment</a>
+					</div>
+					
+					<div id="commentDIV" >
+						<?php echo __commentDisplay($comments);?>
+					</div>
+
+					<div class="greybox" id="add_comment">
+						<b>Add Comment:</b>
+						<form name="add_comment" action="?q=/tasks/comment/<?php echo $task['task_id']; ?>" method="post" enctype='multipart/form-data'>
+							<textarea id="comment" name="comment"></textarea>
+							<input type="hidden" name="taskID" value="<?php echo $task['task_id']; ?>"><br/>
+							<br />
+							Passfile: <INPUT type='file' name='keyfile' />
+							<br />
+                            Password: <INPUT type='text' name='password' >
+							<br />
+							<br />
+							<INPUT type='hidden' name='capcha' value=''>
+							<INPUT type='hidden' name='digest' value='<?php echo $ascii_capcha["digest"]; ?>'>
+
+							<br />
+							
+							<input type="submit" value="Submit" />		
+
 						</form>
 					</div>
 					
+					<br />
 					<div class="greybox">
-					<?php
-					//TODO make this look nicer and add a comment adder thingiemajigggggggie
-					foreach ($comments as $comment):
-						echo $comments['message'] . "<br />";
-					endforeach; ?>
-						
+						Task Administration
+						<FORM action='?q=/tasks/delete' method='post' enctype='multipart/form-data'>
+							<input type="hidden" name="taskID" value="<?php echo $task['task_id']; ?>">
+							KeyFile:<input type='file' name='keyfile' />
+							<br />
+							Password: <INPUT type='text' name='password' value=''>
+							<INPUT type='submit' value='delete task'> 
+						</FORM>
 					</div>
-			<?php } ?>
 		</div>
 		<?php } ?>
 		<!--TaskView-->
@@ -199,25 +431,53 @@ t=setTimeout('startTime()',500);
 		<!--List of task-->
 		<?php if (in_array("tasksList", $mode)) { ?>
 		
-			<?php if (!empty($tags)){?>
-			<div class="greybox">
-				<a href="?q=/tasks/new&tag=<?php echo $tags[0];?>">Create New '<?php echo $tags[0];?>' Task</a>
+			<!-- TagCanvus (ACTIVATES ONLY ON FRONTPAGE)-->
+			<?php if(isset($tagClouds)){ ?>
+			<div class="cloudbox">
+				<div class="tagcloud">
+				<?php 
+				$maxcount = 1;
+				foreach($tagClouds as $tag){ 
+					if($maxcount<$tag['count']){
+					$maxcount = $tag['count'];
+					}
+				}
+				foreach($tagClouds as $tag){ 
+					$min_font_size = 0.5;$max_font_size = 3;
+					$scalefactor = 1;
+					$weight = round( $min_font_size+($max_font_size - $min_font_size)*(stripslashes($tag['count']) / $maxcount) ); 
+					$font_size = $scalefactor*$weight .'em';
+				?>
+					<a 
+					style="font-size: <?php echo $font_size ;?>;" 
+					href="?q=/tags/<?php echo htmlentities(stripslashes($tag['label']),null, 'utf-8'); ?>" 
+					title="Count: <?php echo htmlentities(stripslashes($tag['count'])); ?>"
+					>
+							<?php echo substr( htmlentities(stripslashes(htmlentities($tag['label']))) ,0,20) ; ?>
+					</a>
+				<?php } ?>
+				</div>
+			</div>
+			
+			<div style="text-align:center;" class="greybox">
+			<h4>Recent Updates Below</h4>
 			</div>
 			<?php } ?>
+			<!-- TagCanvus -->		
 			
-		<div class="tasklist">
-			<?php $i=1; ?>
-			<?php foreach($tasks as $task){ ?>
-					<div class="task<?php echo $i%2?>">
-						<?php //echo __prettyTripFormatter($task['tripcode'],4);?>
-						<span class="title"><a href='?q=/view/<?php echo $task['task_id']?>' ><?php echo substr(htmlentities(stripslashes($task['title'])),0,40); ?></a></span>
-						<span class="message"><?php echo substr(htmlentities(stripslashes($task['message'])),0,100); ?></span>
-					</div>
 			<?php 
-				$i++;
-				} 
-				?>
-		</div>
+						//referral tag for the 'clone' task feature
+						if (!empty($tags)){
+							$referraltag = $tags[0];
+						} else {
+							$referraltag = "";
+						}
+			?>
+
+			<div id="taskDIV" class="tasklist">
+				<?php echo __taskDisplay($tasks,$referraltag);?>
+			</div>
+			
 		<?php } ?>
 		<!--List of task-->
 
@@ -225,12 +485,12 @@ t=setTimeout('startTime()',500);
 		
 		<!--Search by tag-->
 		<?php if (in_array("tagSearch", $mode)) { ?>
-		</br>
+		<br />
 		<div class="greybox">
 			Tag Search:
-			</br>
+			<br />
 			(Tags seperated by spaces)
-			</br>
+			<br />
 			<FORM action='?q=/tasks/search' method='post'>
 				<INPUT type='text' name='tags' value=''><INPUT type='submit' value='Tag Search'> 
 			</FORM>
@@ -241,47 +501,74 @@ t=setTimeout('startTime()',500);
 		<!--Submit field-->
 		<?php if (in_array("submitForm", $mode)) { ?>
 		
-		</br>
+		<br />
 		<div class="greybox">
 			New Task Submission Form:
-			</br>
+			<br />
 			<FORM action='?q=/tasks/submitnew' method='post' enctype='multipart/form-data'>
 				<P>
-					Title*:<BR>		<INPUT type='text' name='title'value=''><BR>	
-					Message*:</BR>	<textarea class='' rows=5 name='message'></textarea><BR>			
-					Tags:<BR><INPUT type='text' name='tags' value='<?php if(isset($_GET['tag'])){echo $_GET['tag'];}?>'><BR>
-					KEYFILE OR PASSWORD(OPTIONAL):<BR>	
-					<label for='file'>KeyFile:</label><input type='file' name='keyfile' />
-					<label>Password:</label><INPUT type='text' name='password'value=''><BR>
-					<INPUT type='submit' value='Send'> <INPUT type='reset'>
+					<?php 
+							// if tag is suggested.
+							if(isset($_GET['tag'])){
+								$tagpreset = $_GET['tag'];
+								$tagpresetmessage="HashTag: #".implode(" #",explode(" ",$tagpreset));
+							}else{
+								$tagpreset ="";
+								$tagpresetmessage="";
+							} 
+							// There is no xss protection for 'respond' field, as it is assumed that people won't try to 'copy' post that has obvious xss scripts.
+							
+					?>
+					Title*:<br /> <INPUT type='text' size=50 name='title'value='<?php if(isset($responding_to_task)){echo "(Response To): ".htmlentities($responding_to_task['title'],null, 'utf-8');}?>'><br />
+					Message*:<br />	<textarea class='' rows=10 cols=50 name='message'><?php if(isset($responding_to_task)){echo htmlentities($responding_to_task['message'],null, 'utf-8');}?></textarea><br />			
+					<?php echo $tagpresetmessage;?><br/>
+					Tags:<BR><INPUT type='text' name='tags' value='<?php echo $tagpreset;?>'><br />
+					<INPUT type='hidden' name='respondid' value='<?php echo $responding_taskid;?>'><br />
+					<label for='file'>Image:</label><br /> <input type='file' name='image' />
+					<br />
+					<br />
+					<br /> Authentication (No Registration Required):
+					<br /> <label for='file'>KeyFile:</label><br /> <input type='file' name='keyfile' />
+					<br /> <label>Password:</label><br /> <INPUT type='text' name='password' value=''><br />
+					<br />
+					<br />
+					'*' = Must be filled in
+					<br /><INPUT type='submit' value='Send'> <INPUT type='reset'>
+
 				</P>
 			</FORM>
-			</br>
-			Note: Tags are seperated by spaces e.g."cat hat cake"
+			<br />
+			Note: tags in tag fields are seperated by spaces e.g."cat hat cake". Hashtags in message fields are determined by "#" e.g. #hashtags
+			<br />
+			Useful Tips: Typing a datetime in ISO_8601 format will show a countdown to that date in javascript ( Formatting guide here: http://en.wikipedia.org/wiki/ISO_8601 )
 		</div>
 		<?php } ?>
 		<!--Submit field-->
 		
-		</br>
+		<br />
 		
 		<!--JAVASCRIPT CLOCK-->
-		<div class="greybox" id="utcDate"></div>
-		<div class="greybox" id="utcTime"></div>
-		<div class="greybox" id="localTime"></div>
+		<div class="timebox" id="utcDate"></div>
+		<div class="timebox" id="utcTime"></div>
+		<div class="timebox" id="localTime"></div>
 		<!--JAVASCRIPT CLOCK-->
+		<br />
 		
-		</br>
+		
+		<div style="overflow:auto; text-align:center; colour:grey" class="blackbox">
+		<a name="WorldMap" href="#WorldMap">WorldMap</a><br /> click map to view posts from each region<br /> 
+		<?php include("./worldmap/worldmap.html"); ?>
+		</div>
 		
 		<!--QR CODE - To help encourage acesses by mobile phone-->
-		<div class="blackbox">
-		<center>
-		<b>SCAN ME </b> <a href="http://qrcode.kaywa.com/img.php?s=8&d=http%3A%2F%2F<?php if(isset($_SERVER["SERVER_NAME"]) AND isset($_SERVER["REQUEST_URI"]) )echo $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];?>">QR Code Image<a> 
-		| <a href='./anonregkit.php'>AnonRegKit</a>
-		</center>
+		<div style="text-align:center;" class="blackbox">
+		<b>SCAN ME </b> <a href="http://qrcode.kaywa.com/img.php?s=8&amp;d=http%3A%2F%2F<?php if(isset($_SERVER["SERVER_NAME"]) AND isset($_SERVER["REQUEST_URI"]) )echo $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];?>">QR Code Image</a> 
+		| <a href='./anonregkit.php' >AnonRegKit</a> | <button id="stopAutoUpdateButton" onclick="tries=0;">Refresh Now</button> |
+		<a href="./embedme.php?url=http%3A%2F%2F<?php if(isset($_SERVER["SERVER_NAME"]) AND isset($_SERVER["REQUEST_URI"]) )echo $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];?>">Embed Me</a> 
+
 		</div>
 		<!--QR CODE - To help encourage acesses by mobile phone-->
 
-	</div>
-	</div>
+	</div>		
 </body>
 </html>

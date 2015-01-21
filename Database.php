@@ -14,6 +14,8 @@ class Database {
 		// Is this a correct mode? (read/write)
 		if(!in_array($mode, array('r', 'w', 'rw', 'wr'))) return false;
 		
+		
+		// array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8") - contains the command to PDO to use UNICODE MODE
 		try {
 			$tmp = new PDO($dsn, $username, $password);
 			
@@ -38,10 +40,6 @@ class Database {
 		self::$db = self::$pool[$mode];
 	}
 	
-	
-	
-	
-
 
 	static function query($sql, $data=array(),$type=array()){
 		$cmd = strtoupper(strtok($sql, ' '));
@@ -69,14 +67,17 @@ class Database {
 			// this is since it always place 'quotes' around each value
 			// hence causes error in cases like "LIMIT ?" -> "LIMIT '1'" (which fails in mysql)
 			$i_data=0;
-			foreach($data as $value){
-				if(!empty($type[$i_data])){
-					switch($type[$i_data]){
+			foreach($data as $key => $value){
+				if(!empty($type[$key])){
+					switch($type[$key]){
 						case 'INT':
 							$valueType=PDO::PARAM_INT;
 							break;
 						case 'BOOL':
 							$valueType=PDO::PARAM_BOOL;
+							break;
+						case 'LARGEOBJECT':
+							$valueType=PDO::PARAM_LOB;
 							break;
 						default:
 						case 'STR':
@@ -150,14 +151,17 @@ class Database {
 			// this is since it always place 'quotes' around each value
 			// hence causes error in cases like "LIMIT ?" -> "LIMIT '1'" (which fails in mysql)
 			$i_data=0;
-			foreach(array_values($data[0]) as $value){
-				if(!empty($type[$i_data])){
-					switch($type[$i_data]){
+			foreach(array_values($data[0]) as $key => $value){
+				if(!empty($type[$key])){
+					switch($type[$key]){
 						case 'INT':
 							$valueType=PDO::PARAM_INT;
 							break;
 						case 'BOOL':
 							$valueType=PDO::PARAM_BOOL;
+							break;						
+						case 'LARGEOBJECT':
+							$valueType=PDO::PARAM_LOB;
 							break;
 						default:
 						case 'STR':

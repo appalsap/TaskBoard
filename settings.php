@@ -2,10 +2,27 @@
 	// Settings
 	
 	
-// configuration
-$__debug = true; // Dev mode
+	// General configuration
+	$__initEnable = true; // Disable After Install (set to 'false' rather than 'true')
+	$__debug = false; // Dev mode
+	$__hiddenServer = false; // Hidden server should not use IP tracking as users all appear local (e.g. in tor)
 	
-	$settingMode = "sqlite";
+	// What Boards to support by default
+	$__defaultTags = array("NorthAmerica", "SouthAmerica", "MiddleEast", "Africa", "Asia", "Europe", "Oceania");
+
+	// SuperTrip moderators (temporary moderation system... until we actually have a proper system going
+	// If not using it, make it an empty array then by typing array() instead
+	$__superModeratorByTrip = array(
+									'VtCZ.WGmDw' => 'admin'
+									);
+	
+	// Unique Salt
+	// Please set your own salt
+	// $__salt = "PUT RANDOM LETTERS HERE"
+	if(!isset($__salt)){$__salt = sha1($_SERVER['DOCUMENT_ROOT'].$_SERVER['SERVER_SOFTWARE']);}
+	
+	// DATABASE CONFIG
+	$settingMode = "mysql";
 	switch($settingMode){
 		case "mysql":
 			$dbType		= "mysql";
@@ -23,6 +40,21 @@ $__debug = true; // Dev mode
 			break;
 	}
 
+	// ADMIN ANNOUNCEMENT
+	/*Annoucements for each tag. "Home" is the tag for the front page */
+	$__tagPageArray = array(
+							"home"	=> "This is a development preview of TaskBoard. <br/>
+		Please help to make it better by contributing to our <a href='https://github.com/corneyflorex/TaskBoard'>github repo</a>"
+							,
+							"anonymous"		=> "Hey anons, well this is just a short message from admin"
+							);
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -48,22 +80,3 @@ $__debug = true; // Dev mode
 										)
 					);
 					
-	//if($__debug) var_dump($config);
-	
-	/*
-	$config_str = <<<SETTINGS
-[homepage]
-tasks_to_show = 10
-
-[tasks]
-lifespan = 1
-
-[database]
-dsn = sqlite:tasks.sq3
-username = 
-password =
-SETTINGS;
-$config = parse_ini_string($config_str, true);
-	*/
-	
-	?>
